@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Happy Birthday MANIKE 🎉 (Offline)</title>
+
+<style>
+  /* ----------------------
+     BASE & UTILITIES
+     ---------------------- */
+  html,body { height:100%; margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+  #app { 
+    min-height:100vh; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; 
+    background: radial-gradient(ellipse at 20% 10%, rgba(255,120,192,0.06), transparent 10%), radial-gradient(ellipse at 80% 90%, rgba(120,160,255,0.04), transparent 10%), #05030a; 
+    color: white;
+  }
+  
+  /* Positioning and text style utilities */
+  .absolute { position: absolute; }
+  .bottom-8 { bottom: 2rem; }
+  .left-1\/2 { left: 50%; }
+  .-translate-x-1\/2 { transform: translateX(-50%); }
+  .text-white\/95 { color: rgba(255, 255, 255, 0.95); }
+  .text-sm { font-size: 0.875rem; }
+  .bg-black\/25 { background-color: rgba(0, 0, 0, 0.25); }
+  .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+  .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+  .rounded-full { border-radius: 9999px; }
+  .drop-shadow-lg { filter: drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1)); }
+  .rounded-lg { border-radius: 0.5rem; }
+  .font-bold { font-weight: 700; }
+  .text-white { color: white; }
+  
+  /* ----------------------
+     NEW PARTICLE HEART
+     ---------------------- */
+  .heart-wrap { 
+    position:relative; width:500px; height:500px; display:flex; align-items:center; justify-content:center; 
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 0.28s ease-in-out, opacity 0.7s ease-out; /* For JS pulse and explosion */
+  }
+
+  #heartCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Instruction pulse */
+  .pulse { animation: pulse 1.25s ease-in-out infinite; }
+  @keyframes pulse { 0% { transform:scale(1); opacity:0.92 } 50% { transform:scale(1.06); opacity:1 } 100% { transform:scale(1); opacity:0.92 } }
+  
+  /* Heart tap animation (pure CSS) on the container */
+  @keyframes heartTapPulse {
+    0% { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+
+  /* ----------------------
+     MESSAGE CARD & OVERLAY
+     ---------------------- */
+  .card { 
+    backdrop-filter: blur(6px) saturate(120%); 
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); 
+    border: 1px solid rgba(255,255,255,0.04); 
+    box-shadow: 0 10px 40px rgba(9,6,15,0.7); 
+    border-radius:20px; 
+    padding:28px; 
+    max-width:920px; 
+    width:92%; 
+    display:flex; 
+    gap:18px; 
+    align-items:center; 
+    justify-content:center; 
+    flex-wrap:wrap; 
+    transition: justify-content 0.8s ease;
+  }
+  
+  .message { 
+    max-width:420px; 
+    color: #f7f7fb;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.9s ease-in-out;
+  }
+  .title { font-size: 2rem; font-weight:800; letter-spacing:0.02em; }
+  .subtitle { color:#e7e4ff; opacity:0.95; font-weight:600; margin-top:6px; }
+  .wish-text { 
+    margin-top:14px; background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); 
+    padding:16px; border-radius:12px; border:1px solid rgba(255,255,255,0.03); color:#eae8ff; 
+    line-height: 1.6;
+  }
+
+  .overlay { 
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center; 
+    pointer-events:none; opacity:0; transition:opacity 0.7s ease; 
+  }
+  .overlay .big-msg { text-align:center; color:white; text-shadow: 0 8px 30px rgba(0,0,0,0.6); }
+  .big-msg h1 { 
+    font-size: 4.5rem; margin:0; font-weight:900; letter-spacing:0.02em; 
+    background: linear-gradient(90deg, #fff3a6, #ff93d8 35%, #d8c9ff 70%); 
+    -webkit-background-clip: text; background-clip:text; color:transparent; 
+  }
+  .big-msg p { margin-top:12px; font-size: 1.25rem; color:#f2ecff; opacity:0.95; }
+
+  /* ----------------------
+     RESPONSIVE
+     ---------------------- */
+  @media (max-width:920px) {
+    .card { padding:20px; gap:12px; }
+    .heart-wrap { width:320px; height:320px; }
+  }
+  @media (max-width:520px) {
+    .card { flex-direction:column; align-items:center; padding:18px; }
+    .heart-wrap { width:260px; height:260px; }
+  }
+
+  /* ----------------------
+     CSS STARS
+     ---------------------- */
+  #stars { position: absolute; inset: 0; z-index: 0; }
+  .star { position: absolute; width: 2px; height: 2px; background: white; opacity: 0.5; border-radius: 50%; animation: twinkle 10s linear infinite; }
+  @keyframes twinkle { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; transform: scale(1.2); } }
+  .star:nth-child(1) { top: 10%; left: 80%; animation-delay: 0s; }
+  .star:nth-child(2) { top: 20%; left: 10%; animation-delay: 1.5s; }
+  .star:nth-child(3) { top: 70%; left: 90%; animation-delay: 3s; }
+
+  /* ----------------------
+     BIRTHDAY CAKE
+     ---------------------- */
+  #cake-container {
+    position: absolute;
+    bottom: -150px; /* Start off-screen */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: all 1s ease-out;
+    z-index: 10;
+  }
+  #cake-container.show {
+    bottom: 50px; /* Slide up to position */
+    opacity: 1;
+  }
+  .cake {
+    position: relative;
+    width: 240px; /* Slightly wider */
+    height: 140px; /* Slightly taller */
+    background: #f7d794; /* Golden yellow */
+    border-radius: 50% / 30px 30px 0 0; /* More pronounced top curve */
+    box-shadow: 
+      inset 0 -8px 0 8px rgba(0,0,0,0.15),
+      inset 0 8px 0 8px rgba(255,255,255,0.1),
+      0 15px 30px rgba(0,0,0,0.4);
+  }
+  .cake::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 40px; /* Thicker icing */
+    background: #ffb6c1; /* Light Pink - Icing */
+    border-radius: 50% / 20px 20px 0 0;
+    top: -20px; /* Adjust for thicker icing */
+    left: 0;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+  }
+  .cake::after { /* Second layer of icing for decorative effect */
+    content: '';
+    position: absolute;
+    width: 90%;
+    height: 20px;
+    background: #ff69b4; /* Hot Pink - Decorative icing */
+    border-radius: 50% / 10px 10px 0 0;
+    top: -10px; /* Position above first icing layer */
+    left: 5%;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.1);
+  }
+  .candle {
+    position: absolute;
+    width: 10px; /* Slightly wider candle */
+    height: 40px; /* Taller candle */
+    background: repeating-linear-gradient(45deg, #ff4500, #ff4500 6px, #ff8c00 6px, #ff8c00 12px); /* OrangeRed/DarkOrange stripes */
+    border-radius: 3px;
+    top: -60px; /* Adjust position */
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3);
+  }
+  .flame {
+    position: absolute;
+    width: 15px; /* Bigger flame */
+    height: 22px; /* Taller flame */
+    background: radial-gradient(circle at 50% 0, #ffff00, #ffc107 70%, transparent); /* Brighter yellow flame */
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    top: -75px; /* Adjust position */
+    left: 50%;
+    transform: translateX(-50%) scale(0.8);
+    animation: flame-flicker 0.3s ease-in-out infinite alternate;
+    filter: drop-shadow(0 0 10px #ffff00); /* Stronger glow */
+  }
+
+  @keyframes flame-flicker {
+    0% { transform: translateX(-50%) scale(0.8); }
+    100% { transform: translateX(-50%) scale(1); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stars">
+    <div class="star" style="top: 5%; left: 15%; animation-delay: 0.2s;"></div>
+    <div class="star" style="top: 20%; left: 40%; animation-delay: 1.5s;"></div>
+    <div class="star" style="top: 35%; left: 75%; animation-delay: 3s;"></div>
+    <div class="star" style="top: 55%; left: 25%; animation-delay: 4.8s;"></div>
+    <div class="star" style="top: 80%; left: 60%; animation-delay: 6.1s;"></div>
+    <div class="star" style="top: 10%; left: 90%; animation-delay: 7.5s;"></div>
+    <div class="star" style="top: 70%; left: 5%; animation-delay: 9s;"></div>
+    <div class="star" style="top: 45%; left: 50%; animation-delay: 1.1s;"></div>
+  </div>
+
+  <div id="card" class="card">
+    <div id="heart-wrap" class="heart-wrap">
+      <canvas id="heartCanvas"></canvas>
+      <div id="instruction" class="tap-instruction absolute bottom-8 left-1/2 -translate-x-1\/2 text-white/95 text-sm bg-black/25 px-3 py-2 rounded-full drop-shadow-lg pulse">
+        TAP TAP TAP ❤️
+      </div>
+    </div>
+
+    <div id="message-card" class="message">
+      <div class="title">A special wish for <span style="color:#ffd27d">MANIKE</span></div>
+      <div class="subtitle">The celebration begins now!</div>
+      <div class="wish-text">
+        <strong>Happy Birthday, Manike! ✨</strong>
+        <p style="margin-top:8px;">
+          On your special day, I wish for the universe to align in your favor, bringing you moments of pure joy, unexpected adventures, and the deepest sense of peace. May your heart be as full and bright as the stars tonight. You are incredibly special, and you deserve all the happiness in the world.
+        </p>
+         <p style="margin-top:12px; text-align:right;"><em>With all my love, Ben 💖</em></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay" class="overlay pointer-events-none" aria-hidden="true">
+    <div class="big-msg">
+      <h1 id="big-title">HAPPY BIRTHDAY, MANIKE!</h1>
+      <p id="big-sub" style="max-width:72ch;">May your year sparkle like these fireworks — full of color, warmth, and joy. I love you so much. — <em>Ben</em></p>
+    </div>
+  </div>
+
+  <div id="cake-container">
+    <div class="cake">
+      <div class="candle">
+        <div class="flame"></div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="fireworksCanvas" style="position:absolute; inset:0; z-index:20; pointer-events:none;"></canvas>
+
+</div>
+
+<script>
+/* -------------------------
+  Setup global state
+------------------------- */
+const heartWrap = document.getElementById('heart-wrap');
+const instruction = document.getElementById('instruction');
+const overlay = document.getElementById('overlay');
+const fireworksCanvas = document.getElementById('fireworksCanvas');
+const messageCard = document.getElementById('message-card');
+const topControls = document.getElementById('top-controls'); // Not used in this version
+const card = document.getElementById('card');
+const bigTitle = document.getElementById('big-title');
+const bigSub = document.getElementById('big-sub');
+const cakeContainer = document.getElementById('cake-container');
+
+let tapCount = 0;
+let exploded = false;
+let frame = 0; // Frame counter for animations
+let permanentFireworksInterval;
+
+/* ----------------------------------------------------
+  NEW HEART ANIMATION CODE
+---------------------------------------------------- */
+
+// 1. HELPER LIBRARIES & FUNCTIONS (Vector, Noise, Math)
+const SimplexNoise=function(){"use strict";var F2=0.5*(Math.sqrt(3)-1),G2=(3-Math.sqrt(3))/6,F3=1/3,G3=1/6;function SimplexNoise(random){var i;this.p=new Uint8Array(256);this.perm=new Uint8Array(512);this.permMod12=new Uint8Array(512);if(random){for(i=0;i<256;i++)this.p[i]=random()*256}else{for(i=0;i<256;i++)this.p[i]=i}for(i=0;i<512;i++){this.perm[i]=this.p[i&255];this.permMod12[i]=this.perm[i]%12}}SimplexNoise.prototype={constructor:SimplexNoise,noise3D:function(x,y,z){var permMod12=this.permMod12,perm=this.perm,n0,n1,n2,n3,s=(x+y+z)*F3,i=Math.floor(x+s),j=Math.floor(y+s),k=Math.floor(z+s),t=(i+j+k)*G3,X0=i-t,Y0=j-t,Z0=k-t,x0=x-X0,y0=y-Y0,z0=z-Z0,i1,j1,k1,i2,j2,k2;if(x0>=y0){if(y0>=z0){i1=1;j1=0;k1=0;i2=1;j2=1;k2=0}else if(x0>=z0){i1=1;j1=0;k1=0;i2=1;j2=0;k2=1}else{i1=0;j1=0;k1=1;i2=1;j2=0;k2=1}}else{if(y0<z0){i1=0;j1=0;k1=1;i2=0;j2=1;k2=1}else if(x0<z0){i1=0;j1=1;k1=0;i2=0;j2=1;k2=1}else{i1=0;j1=1;k1=0;i2=1;j2=1;k2=0}}var x1=x0-i1+G3,y1=y0-j1+G3,z1=z0-k1+G3,x2=x0-i2+2*G3,y2=y0-j2+2*G3,z2=z0-k2+2*G3,x3=x0-1+3*G3,y3=y0-1+3*G3,z3=z0-1+3*G3,ii=i&255,jj=j&255,kk=k&255,gi0=permMod12[ii+perm[jj+perm[kk]]],gi1=permMod12[ii+i1+perm[jj+j1+perm[kk+k1]]],gi2=permMod12[ii+i2+perm[jj+j2+perm[kk+k2]]],gi3=permMod12[ii+1+perm[jj+1+perm[kk+1]]],t0=0.6-x0*x0-y0*y0-z0*z0;if(t0<0)n0=0;else{t0*=t0;n0=t0*t0*this.dot(grad3[gi0],x0,y0,z0)}var t1=0.6-x1*x1-y1*y1-z1*z1;if(t1<0)n1=0;else{t1*=t1;n1=t1*t1*this.dot(grad3[gi1],x1,y1,z1)}var t2=0.6-x2*x2-y2*y2-z2*z2;if(t2<0)n2=0;else{t2*=t2;n2=t2*t2*this.dot(grad3[gi2],x2,y2,z2)}var t3=0.6-x3*x3-y3*y3-z3*z3;if(t3<0)n3=0;else{t3*=t3;n3=t3*t3*this.dot(grad3[gi3],x3,y3,z3)}return 32*(n0+n1+n2+n3)},dot:function(g,x,y,z){return z?g[0]*x+g[1]*y+g[2]*z:g[0]*x+g[1]*y}};var grad3=[[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];return SimplexNoise}();
+const noiseGen = new SimplexNoise(Math.random);
+const noise = (x, y, z) => noiseGen.noise3D(x, y, z);
+
+class Vector {
+    constructor(x = 0, y = 0) { this.x = x; this.y = y; }
+    add(v) { this.x += v.x; this.y += v.y; return this; }
+    sub(v) { this.x -= v.x; this.y -= v.y; return this; }
+    mult(n) { this.x *= n; this.y *= n; return this; }
+    mag() { return Math.sqrt(this.x*this.x + this.y*this.y); }
+    setMag(n) { const m = this.mag() || 1; this.x = (this.x / m) * n; this.y = (this.y / m) * n; return this; }
+    limit(max) { const mSq = this.x*this.x + this.y*this.y; if(mSq > max*max) { this.setMag(max); } return this; }
+    copy() { return new Vector(this.x, this.y); }
+    static sub(v1, v2) { return new Vector(v1.x - v2.x, v1.y - v2.y); }
+    static fromAngle(angle) { return new Vector(Math.cos(angle), Math.sin(angle)); }
+    static random2D() { return Vector.fromAngle(Math.random() * Math.PI * 2); }
+}
+const dist = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+const map = (val, s1, e1, s2, e2) => s2 + (e2 - s2) * ((val - s1) / (e1 - s1));
+const random = (min, max) => Math.random() * (max - min) + min;
+
+// 2. PARTICLE & ANIMATION SETUP
+const heartCanvas = document.getElementById('heartCanvas');
+const heartCtx = heartCanvas.getContext('2d');
+let heartParticles = [];
+let heartPoints = [];
+let heartCenter, heartCurveScale;
+let globalHueShift = 0;
+
+class HeartParticle {
+  constructor(x, y) {
+    this.pos = new Vector(x, y);
+    this.vel = Vector.random2D();
+    this.acc = new Vector(0, 0);
+    this.lifespan = 255;
+    this.maxLifespan = 255;
+    this.prevPos = this.pos.copy();
+    this.reinit();
+  }
+  update() {
+    const noiseFactor = 0.005;
+    const angle = noise(this.pos.x * noiseFactor, this.pos.y * noiseFactor, frame * noiseFactor * 0.5) * Math.PI * 2 * 4;
+    const noiseForce = Vector.fromAngle(angle).mult(0.07); // Slower
+    this.acc.add(noiseForce);
+
+    const target = heartPoints[Math.floor(Math.random() * heartPoints.length)];
+    const steer = Vector.sub(target, this.pos).setMag(0.07); // Slower
+    this.acc.add(steer);
+    
+    this.vel.add(this.acc);
+    this.vel.limit(2.5); // Slower
+    this.pos.add(this.vel);
+    this.acc.mult(0);
+    this.lifespan -= random(0.5, 1.5); // Slower decay for longer heart animation
+  }
+  display() {
+    if (this.lifespan > 0) {
+      const alpha = map(this.lifespan, 0, this.maxLifespan, 0, 1);
+      heartCtx.strokeStyle = `hsla(${(this.hue + globalHueShift) % 360}, ${this.saturation}%, ${this.brightness}%, ${alpha})`;
+      heartCtx.lineWidth = 1.5;
+      heartCtx.beginPath();
+      heartCtx.moveTo(this.prevPos.x, this.prevPos.y);
+      heartCtx.lineTo(this.pos.x, this.pos.y);
+      heartCtx.stroke();
+    }
+    this.prevPos = this.pos.copy();
+  }
+  isDead() {
+    const maxDist = (Math.min(heartCanvas.width, heartCanvas.height) / 2) * 0.95 * 1.5;
+    return this.lifespan < 0 || dist(this.pos.x, this.pos.y, heartCenter.x, heartCenter.y) > maxDist;
+  }
+  reinit() {
+    const startPoint = heartPoints[Math.floor(Math.random() * heartPoints.length)];
+    this.pos = startPoint ? startPoint.copy() : heartCenter.copy();
+    this.vel = Vector.random2D().mult(random(0.5, 2));
+    this.acc.mult(0);
+    this.lifespan = this.maxLifespan;
+    this.prevPos = this.pos.copy();
+    this.hue = random(300, 360);
+    this.saturation = random(70, 100);
+    this.brightness = random(80, 100);
+  }
+  pulse() {
+    let dir = Vector.sub(this.pos, heartCenter);
+    if (dir.mag() < 1) dir = Vector.random2D();
+    dir.setMag(random(2, 5));
+    this.vel.add(dir);
+    this.lifespan = this.maxLifespan * 1.5;
+  }
+}
+
+function setupHeartAnimation() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = heartCanvas.getBoundingClientRect();
+  heartCanvas.width = rect.width * dpr;
+  heartCanvas.height = rect.height * dpr;
+  heartCtx.scale(dpr, dpr);
+  
+  heartCenter = new Vector(rect.width / 2, rect.height / 2);
+  const heartScale = 1.1; // Even Bigger heart
+  heartCurveScale = (Math.min(rect.width, rect.height) * heartScale / 2) / 16;
+  
+  heartPoints = [];
+  const numHeartPoints = 200;
+  for (let i = 0; i < numHeartPoints; i++) {
+    const t = map(i, 0, numHeartPoints, 0, Math.PI * 2);
+    const hx = 16 * Math.pow(Math.sin(t), 3);
+    const hy = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+    heartPoints.push(new Vector(heartCenter.x + hx * heartCurveScale, heartCenter.y + hy * heartCurveScale));
+  }
+  
+  heartParticles = [];
+  for (let i = 0; i < 350; i++) {
+    heartParticles.push(new HeartParticle(heartCenter.x, heartCenter.y));
+  }
+}
+
+function drawHeart() {
+  heartCtx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+  const rect = heartCanvas.getBoundingClientRect();
+  heartCtx.fillRect(0, 0, rect.width, rect.height);
+  
+  for (let p of heartParticles) {
+    p.update();
+    p.display();
+    if (p.isDead()) p.reinit();
+  }
+}
+
+setupHeartAnimation();
+window.addEventListener('resize', setupHeartAnimation);
+
+/* -------------------------
+  Heart tap behavior
+------------------------- */
+function heartPulse() {
+  heartWrap.style.animation = 'none';
+  void heartWrap.offsetWidth;
+  heartWrap.style.animation = 'heartTapPulse 0.28s linear';
+}
+
+function registerTap(e) {
+  if (exploded) return;
+  if (e && e.type.startsWith('touch')) { e.preventDefault(); }
+  
+  tapCount++;
+  
+  globalHueShift = (globalHueShift + 25) % 360;
+  heartParticles.forEach(p => p.pulse());
+  
+  heartPulse();
+  createQuickSparks();
+
+  if (tapCount >= 10) { // Keep tap count the same for explosion trigger
+    triggerExplosion();
+  }
+}
+
+heartWrap.addEventListener('click', registerTap);
+heartWrap.addEventListener('touchstart', registerTap, { passive:false });
+heartWrap.addEventListener('keydown', (e) => { 
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); registerTap(); } 
+});
+
+/* -------------------------
+  Quick spark micro animation
+------------------------- */
+function createQuickSparks() {
+  const heartBox = heartWrap.getBoundingClientRect();
+  const centerX = heartBox.left + heartBox.width / 2;
+  const centerY = heartBox.top + heartBox.height / 2;
+  spawnFireworkAt(centerX, centerY, { small:true });
+}
+
+/* -------------------------
+  Fireworks system
+------------------------- */
+const fw = fireworksCanvas;
+const ctx = fw.getContext('2d');
+function resizeFireworksCanvas() {
+  fw.width = window.innerWidth * window.devicePixelRatio;
+  fw.height = window.innerHeight * window.devicePixelRatio;
+  fw.style.width = window.innerWidth + 'px';
+  fw.style.height = window.innerHeight + 'px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
+window.addEventListener('resize', resizeFireworksCanvas);
+resizeFireworksCanvas();
+
+let particles = [];
+class Particle {
+  constructor(x,y, vx,vy, color, life=80, size=3, gravity=0.04) {
+    this.x=x; this.y=y; this.vx=vx; this.vy=vy; this.color=color; this.life=life; this.size=size; this.gravity=gravity;
+    this.age=0;
+  }
+  step() {
+    this.vy += this.gravity;
+    this.x += this.vx;
+    this.y += this.vy;
+    this.vx *= 0.995;
+    this.vy *= 0.995;
+    this.age++;
+  }
+  draw(ctx) {
+    const t = this.age/this.life;
+    const alpha = Math.max(1 - t, 0);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = this.color;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, Math.max(0.8, this.size * (1 - t)), 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+function spawnFireworkAt(x,y, opts = {}) {
+  if (opts.small) {
+    const count = 12;
+    for (let i=0;i<count;i++){
+      const angle = Math.random()*Math.PI*2;
+      const speed = 1 + Math.random()*2;
+      const vx = Math.cos(angle)*speed;
+      const vy = Math.sin(angle)*speed;
+      const col = `hsl
+(${Math.random()*360} 90% 65%)`;
+      particles.push(new Particle(x, y, vx, vy, col, 40, 3 + Math.random()*2, 0.03));
+    }
+    return;
+  }
+  // This delay is removed for the main fireworks, so they explode immediately
+  const count = 80 + Math.floor(Math.random()*60);
+  const baseHue = Math.random()*360;
+  for (let i=0;i<count;i++){
+    const angle = Math.random()*Math.PI*2;
+    const speed = 1 + Math.random()*5;
+    const vx = Math.cos(angle)*speed;
+    const vy = Math.sin(angle)*speed;
+    const hue = baseHue + Math.random()*80 - 40;
+    const col = `hsl(${hue} 92% ${60 + Math.random()*12}%)`;
+    particles.push(new Particle(x + (Math.random()-0.5)*4, y + (Math.random()-0.5)*4, vx, vy, col, 100 + Math.random()*80, 2 + Math.random()*3, 0.02));
+  }
+}
+
+/* -------------------------
+  Main Animation Loop
+------------------------- */
+function animate() {
+  requestAnimationFrame(animate);
+  frame++;
+  
+  drawHeart();
+
+  ctx.clearRect(0,0,fw.width,fw.height);
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.step();
+    p.draw(ctx);
+    if (p.age > p.life) particles.splice(i,1);
+  }
+}
+animate();
+
+/* -------------------------
+  Explosion & Scene Transition
+------------------------- */
+function triggerExplosion() {
+  if (exploded) return;
+  exploded = true;
+
+  // Make the heart disappear
+  heartWrap.style.transform = 'scale(0.8) rotate(-6deg)';
+  heartWrap.style.opacity = '0';
+  instruction.style.opacity = '0';
+
+  // Trigger initial fireworks
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2 - 20;
+  for (let i = 0; i < 3; i++) {
+    setTimeout(() => spawnFireworkAt(cx + (Math.random() - 0.5) * 80, cy + (Math.random() - 0.5) * 60), i * 300);
+  }
+
+  // Show "Happy Birthday, MANIKE!" (overlay) for 5 seconds
+  setTimeout(() => {
+    overlay.style.opacity = 1;
+    overlay.setAttribute('aria-hidden', 'false');
+    bigTitle.style.transform = 'translateY(0)';
+    bigTitle.style.opacity = 1;
+    bigSub.style.transform = 'translateY(0)';
+    bigSub.style.opacity = 1;
+
+    // Start permanent fireworks for the overlay duration
+    startPermanentFireworks();
+  }, 450); // Show overlay after initial heart explosion animation
+
+  setTimeout(() => {
+    overlay.style.opacity = 0;
+    overlay.setAttribute('aria-hidden', 'true');
+    stopPermanentFireworks(); // Stop fireworks specific to the overlay
+    
+    // After overlay disappears, show the message card and cake
+    heartWrap.style.display = 'none'; // Ensure heart is fully gone
+    instruction.style.display = 'none';
+
+    card.style.justifyContent = 'center'; // Center the card
+    messageCard.style.opacity = 1;
+    messageCard.style.pointerEvents = 'auto';
+
+    cakeContainer.classList.add('show'); // Show the cake
+
+    // Continue fireworks in the background for the rest of the experience
+    startPermanentFireworks(); 
+
+  }, 450 + 5000); // Overlay + 5 seconds display
+}
+
+function startPermanentFireworks() {
+  if (permanentFireworksInterval) clearInterval(permanentFireworksInterval);
+  permanentFireworksInterval = setInterval(() => {
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * (window.innerHeight * 0.7); // Fire in the upper 70% of the screen
+    spawnFireworkAt(x, y);
+  }, random(500, 1500)); // Fireworks every 0.5 to 1.5 seconds
+}
+
+function stopPermanentFireworks() {
+  clearInterval(permanentFireworksInterval);
+  permanentFireworksInterval = null;
+}
+
+/* -------------------------
+  Utility Functions
+------------------------- */
+// Modified overlay click to do nothing if it's the 5-second display.
+// The overlay will disappear automatically after 5 seconds.
+overlay.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevent clicks on the overlay from propagating if desired
+  // This click handler will now effectively do nothing as the overlay manages its own dismissal
+});
+</script>
+</body>
+</html>
